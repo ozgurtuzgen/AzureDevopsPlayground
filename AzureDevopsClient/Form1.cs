@@ -30,14 +30,14 @@ namespace AzureDevopsClient
         public const string state = "State";
         public const string title = "Title";
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        
+
         Dictionary<string, string> fieldReferences = new Dictionary<string, string>();
         List<WorkItemTypeFieldWithReferences> fieldRefs = new List<WorkItemTypeFieldWithReferences>();
 
         delegate void SetEnabledCallback();
         delegate void UpdateProgressCallback();
 
-        
+
         public Form1()
         {
             InitializeComponent();
@@ -158,8 +158,15 @@ namespace AzureDevopsClient
                     if (item.Source != null && item.Target != null)
                     {
                         var task = await this.GetWorkItem(item.Target.Id);
+
+                        if (!task.Fields[fieldReferences[iterationPath]].ToString().Contains("INTCORE3\\v4.0") &&
+                            !task.Fields[fieldReferences[iterationPath]].ToString().Contains("INTCORE3\\v3.2"))
+                        {
+                            continue;
+                        }
+                        
                         log.Info(string.Format("Bug: {0} - Task: {1} Completed Work: {2}, Remaining Work: {3}",
-                            bugId, item.Target.Id, task.Fields[fieldReferences[completedWork]].ToString(), task.Fields[fieldReferences[remainingWork]].ToString()));
+                        bugId, item.Target.Id, task.Fields[fieldReferences[completedWork]].ToString(), task.Fields[fieldReferences[remainingWork]].ToString()));
 
                         var completedRemainingPair = GetSafeCompletedAndRemainig(task.Fields);
 
@@ -168,7 +175,7 @@ namespace AzureDevopsClient
                     }
                 }
 
-                await UpdateFieldOfWorkItem(bugId, cumulativeRemainingWork, cumulativeCompletedWork);               
+                await UpdateFieldOfWorkItem(bugId, cumulativeRemainingWork, cumulativeCompletedWork);
             }
 
             totalThreadCount--;
